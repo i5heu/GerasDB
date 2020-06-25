@@ -1,3 +1,4 @@
+pub use rusqlite::Error as dbError;
 use rusqlite::NO_PARAMS;
 use rusqlite::{Connection, Result};
 
@@ -6,8 +7,8 @@ pub struct Foo {
     conn: rusqlite::Connection,
 }
 
-pub fn init() -> Result<Foo> {
-    let conn = Connection::open("cats.db")?;
+pub fn init() -> Result<Foo, rusqlite::Error> {
+    let conn = Connection::open(":memory:")?;
 
     conn.execute(
         "create table if not exists cat_colors (
@@ -33,13 +34,8 @@ pub fn init() -> Result<Foo> {
     Ok(bar)
 }
 
-pub mod math {
-    pub const fn add(a: i8, b: i8) -> i8 {
-        return a + b;
-    }
-
-    #[test]
-    fn it_works() {
-        assert_eq!(add(2, 2), 4);
-    }
+#[test]
+fn it_works() -> Result<(), rusqlite::Error> {
+    let result = init()?;
+    Ok(())
 }
