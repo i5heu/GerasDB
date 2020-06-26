@@ -35,7 +35,7 @@ pub fn init() -> Result<Foo, rusqlite::Error> {
 }
 
 #[test]
-fn it_works() -> Result<(), rusqlite::Error> {
-    let result = init()?;
+fn initialization_test() -> Result<(), rusqlite::Error> {
+    init()?;
     Ok(())
 }
