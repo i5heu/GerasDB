@@ -1,9 +1,13 @@
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::{Connection, NO_PARAMS};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
-pub fn init(conn: &Arc<Connection>) -> Result<(), rusqlite::Error> {
-    conn.execute(
-        "CREATE TABLE persistentStore(
+pub fn init(pool: &Pool<SqliteConnectionManager>) -> Result<(), rusqlite::Error> {
+    pool.get()
+        .unwrap()
+        .execute(
+            "CREATE TABLE persistentStore(
             hash CHARACTER(97) primary key,
             tree_hash CHARACTER(97) NOT NULL UNIQUE,
             parent_hash CHARACTER(97) NOT NULL UNIQUE,
@@ -18,9 +22,9 @@ pub fn init(conn: &Arc<Connection>) -> Result<(), rusqlite::Error> {
             reading_errors UNSIGNED INTEGER,
             extras TEXT
           )",
-        NO_PARAMS,
-    )?;
+            NO_PARAMS,
+        )
+        .unwrap();
 
     Ok(())
 }
-

@@ -1,13 +1,18 @@
+use r2d2::Pool;
+use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::{params, Connection, Result, NO_PARAMS};
-use std::{process, sync::Arc};
+use std::{
+    process,
+    sync::{Arc, Mutex},
+};
 
 pub struct PersistentItem {
     pub hash: String,
     pub tree_hash: String, // random hash defined on the root of the tree,
     pub parent_hash: String,
-    pub lvl: u32, //the level above the tree root,
+    pub lvl: u32,        //the level above the tree root,
     pub creator: String, // the creator of this link for diff between sys and usr,
-    pub created: i64, // with ms,
+    pub created: i64,    // with ms,
     pub importance: u32, // the importance of the data - higher is more important - will be used to decide if unimportant data will be sacrificed for the sake of the reliability of more important data
     pub content: String,
     pub deleted: bool,
@@ -17,10 +22,14 @@ pub struct PersistentItem {
     pub extras: String, // json
 }
 
-
-pub fn insert(conn: &Arc<Connection>, item: &PersistentItem) -> Result<(), rusqlite::Error> {
-    conn.execute(
-        "INSERT INTO persistentStore (
+pub fn insert(
+    pool: &Pool<SqliteConnectionManager>,
+    item: &PersistentItem,
+) -> Result<(), rusqlite::Error> {
+    pool.get()
+        .unwrap()
+        .execute(
+            "INSERT INTO persistentStore (
             hash,
             tree_hash,
             parent_hash,
@@ -34,45 +43,35 @@ pub fn insert(conn: &Arc<Connection>, item: &PersistentItem) -> Result<(), rusql
             last_checked,
             reading_errors,
             extras
-        ) VALUES (
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        ?
-      );",
-      params![
-        item.hash,
-        item.tree_hash,
-        item.parent_hash,
-        item.lvl,
-        item.creator,
-        item.created,
-        item.importance,
-        item.content,
-        item.deleted,
-        item.hash_if_deleted,
-        item.last_checked,
-        item.reading_errors,
-        item.extras
-      ] 
-    )?;
-
+        ) VALUES ( ?,?,?,?,?,?,?,?,?,?,?,?,? );",
+            params![
+                item.hash,
+                item.tree_hash,
+                item.parent_hash,
+                item.lvl,
+                item.creator,
+                item.created,
+                item.importance,
+                item.content,
+                item.deleted,
+                item.hash_if_deleted,
+                item.last_checked,
+                item.reading_errors,
+                item.extras
+            ],
+        )
+        .unwrap();
 
     Ok(())
 }
 
-
-pub fn get(conn: &Arc<Connection>, hash: &String) -> Result<PersistentItem, rusqlite::Error> {
-    let mut stmt = conn.prepare("SELECT 
+pub fn get(
+    pool: &Pool<SqliteConnectionManager>,
+    hash: &String,
+) -> Result<PersistentItem, rusqlite::Error> {
+    let conn = pool.get().unwrap();
+    let mut stmt = conn.prepare(
+        "SELECT 
             hash,
             tree_hash,
             parent_hash,
@@ -86,29 +85,31 @@ pub fn get(conn: &Arc<Connection>, hash: &String) -> Result<PersistentItem, rusq
             last_checked,
             reading_errors,
             extras
-        FROM persistentStore WHERE hash = :search_hash")?;
+        FROM persistentStore WHERE hash = :search_hash",
+    )?;
 
-    let hash_iter = stmt.query_map(params![hash], |row| Ok(PersistentItem { 
-        hash: row.get(0)?,
-        tree_hash: row.get(1)?,
-        parent_hash: row.get(2)?,
-        lvl: row.get(3)?,
-        creator: row.get(4)?,
-        created: row.get(5)?,
-        importance: row.get(6)?,
-        content: row.get(7)?,
-        deleted: row.get(8)?,
-        hash_if_deleted: row.get(9)?,
-        last_checked: row.get(10)?,
-        reading_errors: row.get(11)?,
-        extras: row.get(12)?,
-    }))?;
+    let hash_iter = stmt.query_map(params![hash], |row| {
+        Ok(PersistentItem {
+            hash: row.get(0)?,
+            tree_hash: row.get(1)?,
+            parent_hash: row.get(2)?,
+            lvl: row.get(3)?,
+            creator: row.get(4)?,
+            created: row.get(5)?,
+            importance: row.get(6)?,
+            content: row.get(7)?,
+            deleted: row.get(8)?,
+            hash_if_deleted: row.get(9)?,
+            last_checked: row.get(10)?,
+            reading_errors: row.get(11)?,
+            extras: row.get(12)?,
+        })
+    })?;
 
-
-    let mut foo:Option<PersistentItem> = None;
+    let mut foo: Option<PersistentItem> = None;
 
     for hash in hash_iter {
-        foo = Some( match hash {
+        foo = Some(match hash {
             Ok(e) => e,
             Err(e) => {
                 eprintln!("{}", e);
@@ -116,11 +117,11 @@ pub fn get(conn: &Arc<Connection>, hash: &String) -> Result<PersistentItem, rusq
             }
         });
     }
-    
+
     if let Some(x) = foo {
         Ok(x)
     } else {
-        Ok(PersistentItem{
+        Ok(PersistentItem {
             hash: String::from("NOT FOUND"),
             tree_hash: String::from(""),
             parent_hash: String::from(""),
