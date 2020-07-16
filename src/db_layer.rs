@@ -1,3 +1,5 @@
+extern crate rustc_serialize;
+use rustc_serialize::json;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::{params, Connection, Result, NO_PARAMS};
@@ -6,6 +8,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+#[derive(RustcDecodable, RustcEncodable)]
 pub struct PersistentItem {
     pub hash: String,
     pub tree_hash: String, // random hash defined on the root of the tree,

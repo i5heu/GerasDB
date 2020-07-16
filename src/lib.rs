@@ -4,8 +4,8 @@ use r2d2_sqlite::SqliteConnectionManager;
 pub use rusqlite::Error as dbError;
 use rusqlite::{params, Connection, Result, NO_PARAMS};
 use std::process;
-mod db_layer;
 mod initialize_db;
+pub mod db_layer;
 
 extern crate r2d2;
 extern crate r2d2_sqlite;
