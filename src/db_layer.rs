@@ -11,6 +11,7 @@ use std::{
 #[derive(RustcDecodable, RustcEncodable)]
 pub struct PersistentItem {
     pub hash: String,
+    pub key: String,
     pub tree_hash: String, // random hash defined on the root of the tree,
     pub parent_hash: String,
     pub lvl: u32,        //the level above the tree root,
@@ -34,6 +35,7 @@ pub fn insert(
         .execute(
             "INSERT INTO persistentStore (
             hash,
+            key,
             tree_hash,
             parent_hash,
             lvl,
@@ -46,9 +48,10 @@ pub fn insert(
             last_checked,
             reading_errors,
             extras
-        ) VALUES ( ?,?,?,?,?,?,?,?,?,?,?,?,? );",
+        ) VALUES ( ?,?,?,?,?,?,?,?,?,?,?,?,?,? );",
             params![
                 item.hash,
+                item.key,
                 item.tree_hash,
                 item.parent_hash,
                 item.lvl,
@@ -87,9 +90,10 @@ pub fn get(
             hash_if_deleted,
             last_checked,
             reading_errors,
-            extras
+            extras,
+            key
         FROM persistentStore WHERE hash = :search_hash",
-    )?;
+    ).unwrap();
 
     let hash_iter = stmt.query_map(params![hash], |row| {
         Ok(PersistentItem {
@@ -106,6 +110,7 @@ pub fn get(
             last_checked: row.get(10)?,
             reading_errors: row.get(11)?,
             extras: row.get(12)?,
+            key: row.get(13)?,
         })
     })?;
 
@@ -126,6 +131,7 @@ pub fn get(
     } else {
         Ok(PersistentItem {
             hash: String::from("NOT FOUND"),
+            key: String::from("testing:test"),
             tree_hash: String::from(""),
             parent_hash: String::from(""),
             hash_if_deleted: String::from(""),

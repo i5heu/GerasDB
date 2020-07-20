@@ -17,7 +17,7 @@ pub struct DbSession {
 }
 
 pub fn init() -> Result<DbSession, rusqlite::Error> {
-    let manager = SqliteConnectionManager::file(":memory:")
+    let manager = SqliteConnectionManager::file("demo.sql")
         .with_init(|c| c.execute_batch("PRAGMA foreign_keys=1;"));
     let pool = r2d2::Pool::new(manager).unwrap();
 
@@ -45,6 +45,7 @@ fn set_and_get_test() -> Result<(), rusqlite::Error> {
 
     let test_item: &PersistentItem = &PersistentItem {
         hash: String::from(hash),
+        key: String::from("testing:test"),
         tree_hash: String::from(hash),
         parent_hash: String::from(hash),
         hash_if_deleted: String::from(hash),

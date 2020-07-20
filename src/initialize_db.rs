@@ -7,8 +7,9 @@ pub fn init(pool: &Pool<SqliteConnectionManager>) -> Result<(), rusqlite::Error>
     pool.get()
         .unwrap()
         .execute(
-            "CREATE TABLE persistentStore(
+            "CREATE TABLE IF NOT EXISTS persistentStore(
             hash CHARACTER(97) primary key,
+            key CHARACTER(97),
             tree_hash CHARACTER(97) NOT NULL UNIQUE,
             parent_hash CHARACTER(97) NOT NULL UNIQUE,
             lvl UNSIGNED INTEGER NOT NULL, 
