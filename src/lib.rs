@@ -17,7 +17,7 @@ pub struct DbSession {
 }
 
 pub fn init() -> Result<DbSession, rusqlite::Error> {
-    let manager = SqliteConnectionManager::file("demo.sql")
+    let manager = SqliteConnectionManager::file("demo.sqlite3")
         .with_init(|c| c.execute_batch("PRAGMA foreign_keys=1;"));
     let pool = r2d2::Pool::new(manager).unwrap();
 
