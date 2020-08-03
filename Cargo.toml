@@ -1,6 +1,6 @@
 [package]
 name = "gerasdb"
-version = "0.0.0-dev"
+version = "0.0.1-dev"
 authors = ["i5heu <i5h@i5h.eu>"]
 edition = "2018"
 description = "A DB for the Wikinota project. Consider this as a hello world!"
