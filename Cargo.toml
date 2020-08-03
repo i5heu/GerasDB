@@ -3,7 +3,18 @@ name = "gerasdb"
 version = "0.0.0-dev"
 authors = ["i5heu <i5h@i5h.eu>"]
 edition = "2018"
+description = "A DB for the Wikinota project. Consider this as a hello world!"
+homepage = "https://github.com/i5heu/GerasDB"
+repository = "https://github.com/i5heu/GerasDB"
+readme = "README.md"
+license = "AGPL-3.0"
+license-file = "LICENSE.txt"
+categories = ["db"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+r2d2_sqlite = "0.16.0" 
+r2d2 = "0.8.9"
+rusqlite = "0.23.1"
+rustc-serialize = "0.3.24"
