@@ -9,7 +9,7 @@ repository = "https://github.com/i5heu/GerasDB"
 readme = "README.md"
 license = "AGPL-3.0"
 license-file = "LICENSE"
-categories = ["db"]
+categories = ["database"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
