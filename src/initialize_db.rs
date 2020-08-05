@@ -1,7 +1,6 @@
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::{Connection, NO_PARAMS};
-use std::sync::{Arc, Mutex};
+use rusqlite::{NO_PARAMS};
 
 pub fn init(pool: &Pool<SqliteConnectionManager>) -> Result<(), rusqlite::Error> {
     pool.get()

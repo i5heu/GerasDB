@@ -1,11 +1,11 @@
-use db_layer::PersistentItem;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 pub use rusqlite::Error as dbError;
-use rusqlite::{params, Connection, Result, NO_PARAMS};
+use rusqlite::Result;
 use std::process;
-mod initialize_db;
+use db_layer::PersistentItem;
 pub mod db_layer;
+mod initialize_db;
 
 extern crate r2d2;
 extern crate r2d2_sqlite;
@@ -62,7 +62,7 @@ fn set_and_get_test() -> Result<(), rusqlite::Error> {
 
     let _ = db_layer::insert(&result.pool, &test_item)?;
 
-    let get_result = db_layer::get(&result.pool, &test_item.hash)?;
+    let get_result = db_layer::get_by_hash(&result.pool, &test_item.hash)?;
 
     assert_eq!(hash, get_result.hash);
     assert_eq!(hash, get_result.content);

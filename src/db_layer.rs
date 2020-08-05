@@ -1,12 +1,8 @@
 extern crate rustc_serialize;
-use rustc_serialize::json;
-use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::{params, Connection, Result, NO_PARAMS};
-use std::{
-    process,
-    sync::{Arc, Mutex},
-};
+use rusqlite::{params, Result};
+use std::process;
+use r2d2::Pool;
 
 #[derive(RustcDecodable, RustcEncodable)]
 pub struct PersistentItem {
@@ -71,13 +67,14 @@ pub fn insert(
     Ok(())
 }
 
-pub fn get(
+pub fn get_by_hash(
     pool: &Pool<SqliteConnectionManager>,
     hash: &String,
 ) -> Result<PersistentItem, rusqlite::Error> {
     let conn = pool.get().unwrap();
-    let mut stmt = conn.prepare(
-        "SELECT 
+    let mut stmt = conn
+        .prepare(
+            "SELECT 
             hash,
             tree_hash,
             parent_hash,
@@ -93,7 +90,8 @@ pub fn get(
             extras,
             key
         FROM persistentStore WHERE hash = :search_hash",
-    ).unwrap();
+        )
+        .unwrap();
 
     let hash_iter = stmt.query_map(params![hash], |row| {
         Ok(PersistentItem {
