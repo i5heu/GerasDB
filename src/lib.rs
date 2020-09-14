@@ -1,9 +1,12 @@
+use db_layer::PersistentItem;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 pub use rusqlite::Error as dbError;
 use rusqlite::Result;
-use std::{time::{SystemTime, Instant}, process};
-use db_layer::PersistentItem;
+use std::{
+    process,
+    time::{Instant, SystemTime},
+};
 pub mod db_layer;
 mod initialize_db;
 
@@ -42,7 +45,7 @@ fn set_and_get_by_hash_test() -> Result<(), rusqlite::Error> {
     let result = init()?;
 
     let bar = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => {n},
+        Ok(n) => n,
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     };
 
@@ -77,22 +80,24 @@ fn set_and_get_by_hash_test() -> Result<(), rusqlite::Error> {
     Ok(())
 }
 #[test]
-fn set_and_get_by_key_test() -> Result<(), rusqlite::Error> {
+fn set_and_get_by_half_key_test() -> Result<(), rusqlite::Error> {
     let result = init()?;
 
     let bar = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-        Ok(n) => {n},
+        Ok(n) => n,
         Err(_) => panic!("SystemTime before UNIX EPOCH!"),
     };
 
     let hash = &bar.as_nanos().to_string();
 
-    let key = "test:test:test";
-    let search_key = "test:test:";
+    let mut key = String::from(hash);
+    key.push_str(":test:test:test:test");
+    let mut search_key = String::from(hash);
+    search_key.push_str(":test:%");
 
     let test_item: &PersistentItem = &PersistentItem {
         hash: String::from(hash),
-        key: String::from(key),
+        key: String::from(&key),
         tree_hash: String::from(hash),
         parent_hash: String::from(hash),
         hash_if_deleted: String::from(hash),
@@ -106,12 +111,11 @@ fn set_and_get_by_key_test() -> Result<(), rusqlite::Error> {
         reading_errors: 235235,
         extras: String::from(hash),
     };
+    
+    db_layer::insert(&result.pool, &test_item)?;
+    let get_result = db_layer::get_by_key(&result.pool, &String::from(&search_key))?;
 
-    let _ = db_layer::insert(&result.pool, &test_item)?;
-
-    let get_result = db_layer::get_by_key(&result.pool, &String::from(search_key))?;
-
-    assert_eq!(test_item.key, get_result.key);
+    assert_eq!(key, get_result.key);
 
     assert_eq!(String::from(hash), get_result.content);
     assert_eq!(2141235, get_result.last_checked);

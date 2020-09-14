@@ -31,7 +31,7 @@ pub fn insert(
         .execute(
             "INSERT INTO persistentStore (
             hash,
-            key,
+            item_key,
             tree_hash,
             parent_hash,
             lvl,
@@ -88,7 +88,7 @@ pub fn get_by_hash(
             last_checked,
             reading_errors,
             extras,
-            key
+            item_key
         FROM persistentStore WHERE hash = :search_hash",
         )
         .unwrap();
@@ -167,12 +167,12 @@ pub fn get_by_key(
             last_checked,
             reading_errors,
             extras,
-            key
-        FROM persistentStore WHERE key LIKE :key",
+            item_key
+        FROM persistentStore WHERE item_key LIKE :test ;",
         )
         .unwrap();
     
-    let hash_iter = stmt.query_map_named(&[(":key", key)], |row| {
+    let hash_iter = stmt.query_map_named(&[(":test", key)], |row| {
         
         Ok(PersistentItem {
             hash: row.get(0)?,
@@ -209,19 +209,19 @@ pub fn get_by_key(
     } else {
         Ok(PersistentItem {
             hash: String::from("NOT FOUND"),
-            key: String::from("testing:test"),
-            tree_hash: String::from(""),
-            parent_hash: String::from(""),
-            hash_if_deleted: String::from(""),
+            key: String::from("NOT FOUND"),
+            tree_hash: String::from("NOT FOUND"),
+            parent_hash: String::from("NOT FOUND"),
+            hash_if_deleted: String::from("NOT FOUND"),
             lvl: 0,
-            creator: String::from(""),
+            creator: String::from("NOT FOUND"),
             created: 0,
             importance: 0,
-            content: String::from(""),
+            content: String::from("NOT FOUND"),
             deleted: false,
             last_checked: 0,
             reading_errors: 0,
-            extras: String::from(""),
+            extras: String::from("NOT FOUND"),
         })
     }
 }
