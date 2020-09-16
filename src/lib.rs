@@ -40,6 +40,7 @@ pub fn init() -> Result<DbSession, rusqlite::Error> {
     Ok(bar)
 }
 
+
 #[test]
 fn set_and_get_by_hash_test() -> Result<(), rusqlite::Error> {
     let result = init()?;
@@ -54,7 +55,7 @@ fn set_and_get_by_hash_test() -> Result<(), rusqlite::Error> {
     let test_item: &PersistentItem = &PersistentItem {
         hash: String::from(hash),
         key: String::from("testing:test"),
-        tree_hash: String::from(hash),
+        tree_hash: String::from("tree-hash-test"),
         parent_hash: String::from(hash),
         hash_if_deleted: String::from(hash),
         lvl: 456835687,
@@ -80,6 +81,46 @@ fn set_and_get_by_hash_test() -> Result<(), rusqlite::Error> {
 
     Ok(())
 }
+
+
+#[test]
+fn set_and_get_by_tree_hash_test() -> Result<(), rusqlite::Error> {
+    let result = init()?;
+
+    let bar = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+        Ok(n) => n,
+        Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+    };
+
+    let hash = &bar.as_nanos().to_string();
+
+    let test_item: &PersistentItem = &PersistentItem {
+        hash: String::from(hash),
+        key: String::from("testing:test"),
+        tree_hash: String::from("tree-hash-test"),
+        parent_hash: String::from(hash),
+        hash_if_deleted: String::from(hash),
+        lvl: 456835687,
+        creator: String::from(hash),
+        created: 567445672,
+        importance: 234235675,
+        content: String::from(hash),
+        deleted: false,
+        last_checked: 2141235,
+        reading_errors: 235235,
+        extras: String::from(hash),
+    };
+
+    let _ = db_layer::insert(&result.pool, &test_item)?;
+
+    let results = db_layer::get_by_tree_hash(&result.pool, &test_item.tree_hash)?;
+    let result = &results[0];
+
+    assert_eq!(String::from("tree-hash-test"), result.tree_hash);
+
+    Ok(())
+}
+
 #[test]
 fn set_and_get_by_half_key_test() -> Result<(), rusqlite::Error> {
     let result = init()?;
@@ -99,7 +140,7 @@ fn set_and_get_by_half_key_test() -> Result<(), rusqlite::Error> {
     let test_item: &PersistentItem = &PersistentItem {
         hash: String::from(hash),
         key: String::from(&key),
-        tree_hash: String::from(hash),
+        tree_hash: String::from("tree-hash-test"),
         parent_hash: String::from(hash),
         hash_if_deleted: String::from(hash),
         lvl: 456835687,
@@ -121,6 +162,44 @@ fn set_and_get_by_half_key_test() -> Result<(), rusqlite::Error> {
     assert_eq!(String::from(hash), result.content);
     assert_eq!(2141235, result.last_checked);
     assert_eq!(String::from(hash), result.extras);
+
+    Ok(())
+}
+
+#[test]
+fn set_and_get_highest_by_tree_hash() -> Result<(), rusqlite::Error> {
+    let result = init()?;
+
+    let bar = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+        Ok(n) => n,
+        Err(_) => panic!("SystemTime before UNIX EPOCH!"),
+    };
+
+    let hash = &bar.as_nanos().to_string();
+
+    let test_item: &PersistentItem = &PersistentItem {
+        hash: String::from(hash),
+        key: String::from("testing:test"),
+        tree_hash: String::from("tree-hash-test"),
+        parent_hash: String::from(hash),
+        hash_if_deleted: String::from(hash),
+        lvl: 456835687,
+        creator: String::from(hash),
+        created: 567445672,
+        importance: 234235675,
+        content: String::from(hash),
+        deleted: false,
+        last_checked: 2141235,
+        reading_errors: 235235,
+        extras: String::from(hash),
+    };
+
+    let _ = db_layer::insert(&result.pool, &test_item)?;
+
+    let results = db_layer::get_highest_by_tree_hash(&result.pool, &test_item.tree_hash)?;
+    let result = &results[0];
+
+    assert_eq!(String::from("tree-hash-test"), result.tree_hash);
 
     Ok(())
 }

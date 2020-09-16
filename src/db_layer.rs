@@ -81,6 +81,20 @@ pub fn get_by_key(
     Ok(meta_get(pool, "WHERE item_key LIKE :key", key)?)
 }
 
+pub fn get_by_tree_hash(
+    pool: &Pool<SqliteConnectionManager>,
+    key: &String,
+) -> Result<Vec<PersistentItem>, rusqlite::Error> {
+    Ok(meta_get(pool, "WHERE tree_hash = :key", key)?)
+}
+
+pub fn get_highest_by_tree_hash(
+    pool: &Pool<SqliteConnectionManager>,
+    key: &String,
+) -> Result<Vec<PersistentItem>, rusqlite::Error> {
+    Ok(meta_get(pool, "WHERE tree_hash = :key AND lvl = (SELECT MAX(lvl) FROM persistentStore WHERE tree_hash = :key)", key)?)
+}
+
 pub fn meta_get(
     pool: &Pool<SqliteConnectionManager>,
     selector: &str,
