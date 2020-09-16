@@ -1,6 +1,6 @@
 [package]
 name = "gerasdb"
-version = "0.0.6-dev"
+version = "0.0.7-dev"
 authors = ["i5heu <i5h@i5h.eu>"]
 edition = "2018"
 description = "A DB for the Wikinota project. This is exploratory software and not suitable for production usage!"
@@ -13,7 +13,7 @@ categories = ["database"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-r2d2_sqlite = "0.16.0" 
+r2d2_sqlite = "0.17.0"
 r2d2 = "0.8.9"
-rusqlite = "0.23.1"
+rusqlite = "0.24.0"
 rustc-serialize = "0.3.24"
