@@ -71,68 +71,24 @@ pub fn get_by_hash(
     pool: &Pool<SqliteConnectionManager>,
     hash: &String,
 ) -> Result<Vec<PersistentItem>, rusqlite::Error> {
-    let conn = pool.get().unwrap();
-    let mut stmt = conn
-        .prepare(
-            "SELECT 
-            hash,
-            tree_hash,
-            parent_hash,
-            lvl,
-            creator,
-            created,
-            importance,
-            content,
-            deleted,
-            hash_if_deleted,
-            last_checked,
-            reading_errors,
-            extras,
-            item_key
-        FROM persistentStore WHERE hash = :search_hash",
-        )
-        .unwrap();
-
-    let hash_iter = stmt.query_map(params![hash], |row| {
-        Ok(PersistentItem {
-            hash: row.get(0)?,
-            tree_hash: row.get(1)?,
-            parent_hash: row.get(2)?,
-            lvl: row.get(3)?,
-            creator: row.get(4)?,
-            created: row.get(5)?,
-            importance: row.get(6)?,
-            content: row.get(7)?,
-            deleted: row.get(8)?,
-            hash_if_deleted: row.get(9)?,
-            last_checked: row.get(10)?,
-            reading_errors: row.get(11)?,
-            extras: row.get(12)?,
-            key: row.get(13)?,
-        })
-    })?;
-    let mut vec = Vec::new();
-    
-    for hash in hash_iter {
-        Some(match hash {
-            Ok(e) => vec.push(e),
-            Err(e) => {
-                eprintln!("{}", e);
-                process::exit(1);
-            }
-        });
-    }
-
-    Ok(vec)  
+    Ok(meta_get(pool, "WHERE hash = :key", hash)?)
 }
 
 pub fn get_by_key(
     pool: &Pool<SqliteConnectionManager>,
     key: &String,
 ) -> Result<Vec<PersistentItem>, rusqlite::Error> {
+    Ok(meta_get(pool, "WHERE item_key LIKE :key", key)?)
+}
+
+pub fn meta_get(
+    pool: &Pool<SqliteConnectionManager>,
+    selector: &str,
+    key: &String,
+) -> Result<Vec<PersistentItem>, rusqlite::Error> {
     let conn = pool.get().unwrap();
     let mut stmt = conn
-        .prepare(
+        .prepare(&format!(
             "SELECT 
             hash,
             tree_hash,
@@ -148,12 +104,11 @@ pub fn get_by_key(
             reading_errors,
             extras,
             item_key
-        FROM persistentStore WHERE item_key LIKE :test ;",
-        )
+        FROM persistentStore {};",
+            selector,
+        ))
         .unwrap();
-    
-    let hash_iter = stmt.query_map_named(&[(":test", key)], |row| {
-        
+    let hash_iter = stmt.query_map_named(&[(":key", key)], |row| {
         Ok(PersistentItem {
             hash: row.get(0)?,
             tree_hash: row.get(1)?,
@@ -173,7 +128,6 @@ pub fn get_by_key(
     })?;
 
     let mut vec = Vec::new();
-    
     for hash in hash_iter {
         Some(match hash {
             Ok(e) => vec.push(e),
@@ -184,5 +138,5 @@ pub fn get_by_key(
         });
     }
 
-    Ok(vec)  
+    Ok(vec)
 }
