@@ -1,11 +1,9 @@
-use db_layer::PersistentItem;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 pub use rusqlite::Error as dbError;
 use rusqlite::Result;
 use std::{
     process,
-    time::{Instant, SystemTime},
 };
 pub mod db_layer;
 mod initialize_db;
