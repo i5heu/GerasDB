@@ -1,9 +1,11 @@
+use db_layer::PersistentItem;
 use r2d2::Pool;
 use r2d2_sqlite::SqliteConnectionManager;
 pub use rusqlite::Error as dbError;
 use rusqlite::Result;
 use std::{
     process,
+    time::{Instant, SystemTime},
 };
 pub mod db_layer;
 mod initialize_db;
@@ -110,7 +112,6 @@ fn set_and_get_by_half_key_test() -> Result<(), rusqlite::Error> {
         reading_errors: 235235,
         extras: String::from(hash),
     };
-    
     db_layer::insert(&result.pool, &test_item)?;
     let results = db_layer::get_by_key(&result.pool, &String::from(&search_key))?;
     let result = &results[0];
