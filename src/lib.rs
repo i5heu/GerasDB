@@ -20,7 +20,7 @@ pub struct DbSession {
 }
 
 pub fn init() -> Result<DbSession, rusqlite::Error> {
-    let manager = SqliteConnectionManager::file("demo.sqlite3")
+    let manager = SqliteConnectionManager::file("dbs/demo.sqlite3")
         .with_init(|c| c.execute_batch("PRAGMA foreign_keys=1;"));
     let pool = r2d2::Pool::new(manager).unwrap();
 
@@ -70,12 +70,13 @@ fn set_and_get_by_hash_test() -> Result<(), rusqlite::Error> {
 
     let _ = db_layer::insert(&result.pool, &test_item)?;
 
-    let get_result = db_layer::get_by_hash(&result.pool, &test_item.hash)?;
+    let results = db_layer::get_by_hash(&result.pool, &test_item.hash)?;
+    let result = &results[0];
 
-    assert_eq!(String::from(hash), get_result.hash);
-    assert_eq!(String::from(hash), get_result.content);
-    assert_eq!(2141235, get_result.last_checked);
-    assert_eq!(String::from(hash), get_result.extras);
+    assert_eq!(String::from(hash), result.hash);
+    assert_eq!(String::from(hash), result.content);
+    assert_eq!(2141235, result.last_checked);
+    assert_eq!(String::from(hash), result.extras);
 
     Ok(())
 }
@@ -113,13 +114,14 @@ fn set_and_get_by_half_key_test() -> Result<(), rusqlite::Error> {
     };
     
     db_layer::insert(&result.pool, &test_item)?;
-    let get_result = db_layer::get_by_key(&result.pool, &String::from(&search_key))?;
+    let results = db_layer::get_by_key(&result.pool, &String::from(&search_key))?;
+    let result = &results[0];
 
-    assert_eq!(key, get_result.key);
+    assert_eq!(key, result.key);
 
-    assert_eq!(String::from(hash), get_result.content);
-    assert_eq!(2141235, get_result.last_checked);
-    assert_eq!(String::from(hash), get_result.extras);
+    assert_eq!(String::from(hash), result.content);
+    assert_eq!(2141235, result.last_checked);
+    assert_eq!(String::from(hash), result.extras);
 
     Ok(())
 }

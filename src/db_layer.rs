@@ -70,7 +70,7 @@ pub fn insert(
 pub fn get_by_hash(
     pool: &Pool<SqliteConnectionManager>,
     hash: &String,
-) -> Result<PersistentItem, rusqlite::Error> {
+) -> Result<Vec<PersistentItem>, rusqlite::Error> {
     let conn = pool.get().unwrap();
     let mut stmt = conn
         .prepare(
@@ -111,12 +111,11 @@ pub fn get_by_hash(
             key: row.get(13)?,
         })
     })?;
-
-    let mut foo: Option<PersistentItem> = None;
-
+    let mut vec = Vec::new();
+    
     for hash in hash_iter {
-        foo = Some(match hash {
-            Ok(e) => e,
+        Some(match hash {
+            Ok(e) => vec.push(e),
             Err(e) => {
                 eprintln!("{}", e);
                 process::exit(1);
@@ -124,32 +123,13 @@ pub fn get_by_hash(
         });
     }
 
-    if let Some(x) = foo {
-        Ok(x)
-    } else {
-        Ok(PersistentItem {
-            hash: String::from("NOT FOUND"),
-            key: String::from("testing:test"),
-            tree_hash: String::from(""),
-            parent_hash: String::from(""),
-            hash_if_deleted: String::from(""),
-            lvl: 0,
-            creator: String::from(""),
-            created: 0,
-            importance: 0,
-            content: String::from(""),
-            deleted: false,
-            last_checked: 0,
-            reading_errors: 0,
-            extras: String::from(""),
-        })
-    }
+    Ok(vec)  
 }
 
 pub fn get_by_key(
     pool: &Pool<SqliteConnectionManager>,
     key: &String,
-) -> Result<PersistentItem, rusqlite::Error> {
+) -> Result<Vec<PersistentItem>, rusqlite::Error> {
     let conn = pool.get().unwrap();
     let mut stmt = conn
         .prepare(
@@ -192,11 +172,11 @@ pub fn get_by_key(
         })
     })?;
 
-    let mut result_results: Option<PersistentItem> = None;
-
+    let mut vec = Vec::new();
+    
     for hash in hash_iter {
-        result_results = Some(match hash {
-            Ok(e) => e,
+        Some(match hash {
+            Ok(e) => vec.push(e),
             Err(e) => {
                 eprintln!("{}", e);
                 process::exit(1);
@@ -204,24 +184,5 @@ pub fn get_by_key(
         });
     }
 
-    if let Some(x) = result_results {
-        Ok(x)
-    } else {
-        Ok(PersistentItem {
-            hash: String::from("NOT FOUND"),
-            key: String::from("NOT FOUND"),
-            tree_hash: String::from("NOT FOUND"),
-            parent_hash: String::from("NOT FOUND"),
-            hash_if_deleted: String::from("NOT FOUND"),
-            lvl: 0,
-            creator: String::from("NOT FOUND"),
-            created: 0,
-            importance: 0,
-            content: String::from("NOT FOUND"),
-            deleted: false,
-            last_checked: 0,
-            reading_errors: 0,
-            extras: String::from("NOT FOUND"),
-        })
-    }
+    Ok(vec)  
 }
